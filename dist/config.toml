@@ -4,8 +4,22 @@ port = 8227
 ssl-cert = "ssl/server.crt"
 ssl-key = "ssl/server.key"
 
-[Logger]
+[Logging]
+log-level = "debug"
+log-file-path = "log/server.log"
+log-format = "%{time:2006-01-02 15:04:05.000} %{shortfunc} ▶ %{message}"
+log-file-max-size-in-mb = 10
+log-file-retention-in-days = 1
 
 [DB]
+host = "localhost"
+port = 5432
+schema = "wallet-app"
+username = "vence"
+password = "P@ssw0rd"
+sslmode = "require"
 
 [Redis]
+addr = "localhost:6379"
+password = "P@ssw0rd"
+db = 0

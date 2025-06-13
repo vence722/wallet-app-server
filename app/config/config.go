@@ -11,10 +11,30 @@ import (
 // All the fields should align to config.toml
 type Config struct {
 	Server struct {
-		Host    string
-		Port    int
-		SSLCert string
-		SSLKey  string
+		Host    string `toml:"host"`
+		Port    int    `toml:"port"`
+		SSLCert string `toml:"ssl-cert"`
+		SSLKey  string `toml:"ssl-key"`
+	}
+	Logging struct {
+		LogLevel               string `toml:"log-level"`
+		LogFilePath            string `toml:"log-file-path"`
+		LogFormat              string `toml:"log-format"`
+		LogFileMaxSizeInMB     int    `toml:"log-file-max-size-in-mb"`
+		LogFileRetentionInDays int    `toml:"log-file-retention-in-days"`
+	}
+	DB struct {
+		Host     string `toml:"host"`
+		Port     int    `toml:"port"`
+		Schema   string `toml:"schema"`
+		Username string `toml:"username"`
+		Password string `toml:"password"`
+		SSLMode  string `toml:"sslmode"`
+	}
+	Redis struct {
+		Addr     string `toml:"addr"`
+		Password string `toml:"password"`
+		DB       int    `toml:"db"`
 	}
 }
 
