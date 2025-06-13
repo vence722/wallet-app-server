@@ -1,0 +1,11 @@
+[Server]
+host = "localhost"
+port = 8227
+ssl-cert = "ssl/server.crt"
+ssl-key = "ssl/server.key"
+
+[Logger]
+
+[DB]
+
+[Redis]
