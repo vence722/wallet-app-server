@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"wallet-app-server/internal/passwordhash"
+	"wallet-app-server/app/util"
 )
 
 func main() {
@@ -12,5 +12,5 @@ func main() {
 		fmt.Println("Usage: password_hasher <input_password>")
 		os.Exit(-1)
 	}
-	fmt.Println(passwordhash.HashPassword(os.Args[1]))
+	fmt.Println(util.HashPassword(os.Args[1]))
 }

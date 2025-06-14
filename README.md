@@ -16,6 +16,9 @@ POST /api/v1/auth/login
 
 ## Wallet APIs
 
+### List Wallets
+GET /api/v1/wallet/list
+
 ### Deposit
 POST /api/v1/wallet/deposit
 

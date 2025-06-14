@@ -9,6 +9,7 @@ import (
 	"wallet-app-server/app/redis"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shopspring/decimal"
 )
 
 func InitAndStart(configPath string) {
@@ -23,6 +24,10 @@ func InitAndStart(configPath string) {
 
 	// Init redis
 	redis.Init()
+
+	// Special setting for library github.com/shopspring/decimal
+	// If set to true, the decimal value will be marshaled to number instead of string
+	decimal.MarshalJSONWithoutQuotes = true
 
 	// Create gin app
 	r := gin.Default()

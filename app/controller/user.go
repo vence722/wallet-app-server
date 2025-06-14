@@ -1,7 +1,32 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+	"wallet-app-server/app/service"
 
+	"github.com/gin-gonic/gin"
+)
+
+// User login
+// POST /user/login
 func Login(c *gin.Context) {
-	c.JSON(200, gin.H{})
+	// Parse request body
+	req := struct {
+		Username string `json:"user_name"`
+		Password string `json:"password"`
+	}{}
+	if err := c.BindJSON(&req); err != nil {
+		respondeWithError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	// User login
+	accessToken, statusCode, err := service.UserService.Login(req.Username, req.Password)
+	if err != nil {
+		respondeWithError(c, statusCode, err)
+		return
+	}
+
+	// Return resposne
+	resposneWithData(c, gin.H{"access_token": accessToken})
 }
