@@ -28,4 +28,5 @@ const (
 	ErrMessagePasswordNotValid     = "password is not valid"
 	ErrMessageNegativeOrZeroAmount = "amount must be positive"
 	ErrMessageInsufficientBalance  = "insufficient balance"
+	ErrMessageWalletIDInvalid      = "invalid wallet ID"
 )

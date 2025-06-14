@@ -26,6 +26,14 @@ var TransactionService ITransactionService = &transactionServiceImpl{}
 type transactionServiceImpl struct{}
 
 func (ts *transactionServiceImpl) Transfer(currentUserID string, fromWalletID string, toWalletID string, amount decimal.Decimal) (string, int, error) {
+	// Verify from wallet is belong to the current user
+	valid, err := repository.WalletRepository.VerifyUserWalletPossession(db.DB, currentUserID, fromWalletID)
+	if err != nil {
+		return "", http.StatusInternalServerError, newServiceError(ErrTypeInternalServerError, ErrMessageDBError, err)
+	}
+	if !valid {
+		return "", http.StatusBadRequest, newServiceError(ErrTypeInvalidRequestBody, ErrMessageWalletIDInvalid, nil)
+	}
 	var result string
 	if err := db.DB.Transaction(func(tx *gorm.DB) error {
 		// Record current time
@@ -47,7 +55,7 @@ func (ts *transactionServiceImpl) Transfer(currentUserID string, fromWalletID st
 		}
 		return nil
 	}); err != nil {
-		// If the underlying error is balance related error
+		// If the underlying error is business logic related error
 		// return bad request status code
 		// otherwise return internal server error status code
 		if err.Error() == repository.ErrNegativeOrZeroAmount {
@@ -63,6 +71,14 @@ func (ts *transactionServiceImpl) Transfer(currentUserID string, fromWalletID st
 }
 
 func (ts *transactionServiceImpl) ListHistory(currentUserID string, walletID string) ([]model.TransactionHistory, int, error) {
+	// Verify from wallet is belong to the current user
+	valid, err := repository.WalletRepository.VerifyUserWalletPossession(db.DB, currentUserID, walletID)
+	if err != nil {
+		return nil, http.StatusInternalServerError, newServiceError(ErrTypeInternalServerError, ErrMessageDBError, err)
+	}
+	if !valid {
+		return nil, http.StatusBadRequest, newServiceError(ErrTypeInvalidRequestBody, ErrMessageWalletIDInvalid, nil)
+	}
 	// List transaction history
 	txnHistoryList, err := repository.TransactionRepository.ListTransactionHistory(db.DB, walletID)
 	if err != nil {

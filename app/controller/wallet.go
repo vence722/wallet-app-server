@@ -15,7 +15,7 @@ func ListWallets(c *gin.Context) {
 	currentUserID := c.GetString("current_user_id")
 
 	// List wallets
-	wallets, statusCode, err := service.WalletService.ListWallets(currentUserID)
+	wallets, statusCode, err := service.WalletService.ListUserWallets(currentUserID)
 	if err != nil {
 		respondeWithError(c, statusCode, err)
 		return

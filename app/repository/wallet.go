@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"wallet-app-server/app/entity"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
@@ -10,6 +11,11 @@ import (
 
 // Wallet repository interface
 type IWalletRepository interface {
+	VerifyUserWalletPossession(db *gorm.DB, userID string, walletID string) (bool, error)
+	ListUserWallets(db *gorm.DB, userID string) ([]entity.Wallet, error)
+	GetWalletByID(db *gorm.DB, walletID string) (entity.Wallet, error)
+	Deposit(db *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error)
+	Withdraw(db *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error)
 	Transfer(db *gorm.DB, userID string, fromWalletID string, toWalletID string, amount decimal.Decimal) error
 }
 
@@ -18,6 +24,35 @@ var WalletRepository IWalletRepository = &walletRepositoryImpl{}
 
 // Wallet repository implementation
 type walletRepositoryImpl struct{}
+
+// Verify if the wallet is belong to the user
+func (wr *walletRepositoryImpl) VerifyUserWalletPossession(db *gorm.DB, userID string, walletID string) (bool, error) {
+	var count int64
+	if err := db.Table("user_wallet_bridge").Where("user_id = ? and wallet_id = ?", userID, walletID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// List user's wallets
+func (wr *walletRepositoryImpl) ListUserWallets(db *gorm.DB, userID string) ([]entity.Wallet, error) {
+	return nil, nil
+}
+
+// Get wallet by ID
+func (wr *walletRepositoryImpl) GetWalletByID(db *gorm.DB, walletID string) (entity.Wallet, error) {
+	return entity.Wallet{}, nil
+}
+
+// Deposit to wallet
+func (wr *walletRepositoryImpl) Deposit(db *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
+	return decimal.Zero, nil
+}
+
+// Withdraw from wallet
+func (wr *walletRepositoryImpl) Withdraw(db *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
+	return decimal.Zero, nil
+}
 
 // Transfer money from a wallet to another
 // Should call this method inside a transaction
