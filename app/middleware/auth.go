@@ -3,10 +3,12 @@ package middleware
 import (
 	"net/http"
 	"strings"
+	"wallet-app-server/app/logger"
 	"wallet-app-server/app/redis"
 	"wallet-app-server/app/service"
 
 	"github.com/gin-gonic/gin"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 // Authentication middleware
@@ -27,8 +29,19 @@ func Authentication(c *gin.Context) {
 	// Fetch user ID from Redis
 	currentUserID, err := redis.Client.Get(accessToken)
 	if err != nil {
-		serviceErr := service.ServiceError{ErrType: service.ErrTypeAuthenticationFailed, ErrMessage: service.ErrMessageInvalidAccessToken}
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+		// Record not found error
+		if err == goredis.Nil {
+			logger.Warn("Failed to fetch currentUserID, accessToken: %s, err: %s", accessToken, err.Error())
+			serviceErr := service.ServiceError{ErrType: service.ErrTypeAuthenticationFailed, ErrMessage: service.ErrMessageInvalidAccessToken}
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"error":   serviceErr.Error(),
+			})
+			return
+		}
+		// Other error
+		serviceErr := service.ServiceError{ErrType: service.ErrTypeInternalServerError, ErrMessage: service.ErrMessageDBError, Cause: err}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"error":   serviceErr.Error(),
 		})

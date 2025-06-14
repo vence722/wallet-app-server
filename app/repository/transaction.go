@@ -24,7 +24,7 @@ type transactionRepositoryImpl struct{}
 // List transaction history by wallet ID
 func (tr *transactionRepositoryImpl) ListTransactionHistory(db *gorm.DB, walletID string) ([]entity.TxnHistory, error) {
 	var result []entity.TxnHistory
-	err := db.Where("from_wallet_id = ? or to_wallet_id = ?", walletID, walletID).Find(&result).Error
+	err := db.Where("from_wallet_id = ? or to_wallet_id = ?", walletID, walletID).Order("txn_time").Find(&result).Error
 	return result, err
 }
 

@@ -38,8 +38,8 @@ type RedisClient struct {
 // Get value by key
 func (rc *RedisClient) Get(key string) (string, error) {
 	res, err := rc.rdb.Get(context.Background(), key).Result()
-	if err != nil && err != goredis.Nil {
-		return res, err
+	if err != nil {
+		return "", err
 	}
 	return res, nil
 }
