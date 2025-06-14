@@ -1,0 +1,1 @@
+pkill -n wallet-app-server

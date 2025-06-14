@@ -1,0 +1,1 @@
+nohup ./wallet-app-server -c config.toml 2>&1 >/dev/null &
