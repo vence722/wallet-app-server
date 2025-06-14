@@ -36,22 +36,75 @@ func (wr *walletRepositoryImpl) VerifyUserWalletPossession(db *gorm.DB, userID s
 
 // List user's wallets
 func (wr *walletRepositoryImpl) ListUserWallets(db *gorm.DB, userID string) ([]entity.Wallet, error) {
-	return nil, nil
+	var wallets []entity.Wallet
+	if err := db.Table("wallet").Joins("INNER JOIN user_wallet_bridge ON wallet.wallet_id = user_wallet_bridge.wallet_id").
+		Where("user_wallet_bridge.user_id = ?", userID).Select("wallet.*").Find(&wallets).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return []entity.Wallet{}, nil
+		}
+		return []entity.Wallet{}, err
+	}
+	return wallets, nil
 }
 
 // Get wallet by ID
 func (wr *walletRepositoryImpl) GetWalletByID(db *gorm.DB, walletID string) (entity.Wallet, error) {
-	return entity.Wallet{}, nil
+	var wallet entity.Wallet
+	if err := db.Table("wallet").Where("wallet_id = ?", walletID).Find(&wallet).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return entity.Wallet{}, nil
+		}
+		return entity.Wallet{}, err
+	}
+	return wallet, nil
 }
 
 // Deposit to wallet
-func (wr *walletRepositoryImpl) Deposit(db *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
-	return decimal.Zero, nil
+// Should call this method inside a transaction
+// Note that the wallet row will be locked during the transaction to achieve consistency
+func (wr *walletRepositoryImpl) Deposit(tx *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
+	// Ensure transaction amount > 0
+	if amount.IsNegative() || amount.IsZero() {
+		return decimal.Zero, errors.New(ErrNegativeOrZeroAmount)
+	}
+	// Fetch wallet balance
+	// [NOTE] use clause Strengh = "UPDATE" to implement SELECT ... FOR UPDATE in PostgreSQL
+	var walletBalance decimal.Decimal
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", walletID).Select("balance").Find(&walletBalance).Error; err != nil {
+		return decimal.Zero, err
+	}
+	// Modify to wallet balance (+ amount)
+	newWalletBalance := walletBalance.Add(amount)
+	if err := tx.Table("wallet").Where("wallet_id = ?", walletID).Update("balance", newWalletBalance).Error; err != nil {
+		return decimal.Zero, err
+	}
+	return newWalletBalance, nil
 }
 
 // Withdraw from wallet
-func (wr *walletRepositoryImpl) Withdraw(db *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
-	return decimal.Zero, nil
+// Should call this method inside a transaction
+// Note that the wallet row will be locked during the transaction to achieve consistency
+func (wr *walletRepositoryImpl) Withdraw(tx *gorm.DB, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
+	// Ensure transaction amount > 0
+	if amount.IsNegative() || amount.IsZero() {
+		return decimal.Zero, errors.New(ErrNegativeOrZeroAmount)
+	}
+	// Fetch wallet balance
+	// [NOTE] use clause Strengh = "UPDATE" to implement SELECT ... FOR UPDATE in PostgreSQL
+	var walletBalance decimal.Decimal
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", walletID).Select("balance").Find(&walletBalance).Error; err != nil {
+		return decimal.Zero, err
+	}
+	// Check balance sufficiency
+	if walletBalance.Cmp(amount) < 0 {
+		return decimal.Zero, errors.New(ErrInsufficientBalance)
+	}
+	// Modify from wallet balance (- amount)
+	newWalletBalance := walletBalance.Sub(amount)
+	if err := tx.Table("wallet").Where("wallet_id = ?", walletID).Update("balance", newWalletBalance).Error; err != nil {
+		return decimal.Zero, err
+	}
+	return newWalletBalance, nil
 }
 
 // Transfer money from a wallet to another
