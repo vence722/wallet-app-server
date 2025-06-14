@@ -45,11 +45,11 @@ func (th *TxnHistory) TableName() string {
 }
 
 type UserActivity struct {
-	UserActID     string    `gorm:"primaryKey;column:user_act_id"`
-	UserActType   string    `gorm:"column:user_act_type"`
-	UserActDetail string    `gorm:"column:user_act_detail"`
-	UserWalletID  string    `gorm:"column:user_wallet_id"`
-	UserActTime   time.Time `gorm:"column:user_act_time"`
+	UserActID     string         `gorm:"primaryKey;column:user_act_id"`
+	UserActType   string         `gorm:"column:user_act_type"`
+	UserActDetail string         `gorm:"column:user_act_detail"`
+	UserWalletID  sql.NullString `gorm:"column:user_wallet_id"`
+	UserActTime   time.Time      `gorm:"column:user_act_time"`
 }
 
 func (ua *UserActivity) TableName() string {
