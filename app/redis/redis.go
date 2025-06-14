@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"os"
+	"time"
 	"wallet-app-server/app/config"
 	"wallet-app-server/app/logger"
 
@@ -44,7 +45,7 @@ func (rc *RedisClient) Get(key string) (string, error) {
 }
 
 // Set key and value
-func (rc *RedisClient) Set(key string, value any) error {
-	_, err := rc.rdb.SetArgs(context.Background(), key, value, goredis.SetArgs{KeepTTL: true}).Result()
+func (rc *RedisClient) Set(key string, value any, expiry time.Duration) error {
+	_, err := rc.rdb.SetNX(context.Background(), key, value, expiry).Result()
 	return err
 }

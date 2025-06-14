@@ -46,6 +46,7 @@ func (th *TxnHistory) TableName() string {
 
 type UserActivity struct {
 	UserActID     string         `gorm:"primaryKey;column:user_act_id"`
+	UserID        string         `gorm:"column:user_id"`
 	UserActType   string         `gorm:"column:user_act_type"`
 	UserActDetail string         `gorm:"column:user_act_detail"`
 	UserWalletID  sql.NullString `gorm:"column:user_wallet_id"`

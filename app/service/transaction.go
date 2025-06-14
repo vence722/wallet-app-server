@@ -50,7 +50,7 @@ func (ts *transactionServiceImpl) Transfer(currentUserID string, fromWalletID st
 		result = txnID
 		// Create user activity
 		activityDetail := fmt.Sprintf("User transfer amount %s from wallet %s to wallet %s", amount.StringFixed(2), fromWalletID, toWalletID)
-		if err := repository.UserRepository.CreateUserActivity(tx, constant.UserActTypeTransfer, activityDetail, fromWalletID, currTime); err != nil {
+		if err := repository.UserRepository.CreateUserActivity(tx, currentUserID, constant.UserActTypeTransfer, activityDetail, fromWalletID, currTime); err != nil {
 			return err
 		}
 		return nil

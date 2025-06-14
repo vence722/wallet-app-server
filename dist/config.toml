@@ -3,6 +3,7 @@ host = "localhost"
 port = 8227
 ssl-cert = "ssl/server.crt"
 ssl-key = "ssl/server.key"
+session-expire-time-in-secs = 900
 
 [Logging]
 log-level = "debug"

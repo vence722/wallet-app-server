@@ -95,7 +95,7 @@ func (ws *walletServiceImpl) Deposit(currentUserID string, walletID string, amou
 		}
 		// Create user activity
 		activityDetail := fmt.Sprintf("User deposit amount %s to wallet %s", amount.StringFixed(2), walletID)
-		if err := repository.UserRepository.CreateUserActivity(tx, constant.UserActTypeDeposit, activityDetail, walletID, currTime); err != nil {
+		if err := repository.UserRepository.CreateUserActivity(tx, currentUserID, constant.UserActTypeDeposit, activityDetail, walletID, currTime); err != nil {
 			return err
 		}
 		return nil
@@ -136,7 +136,7 @@ func (ws *walletServiceImpl) Withdraw(currentUserID string, walletID string, amo
 		}
 		// Create user activity
 		activityDetail := fmt.Sprintf("User withdraw amount %s to wallet %s", amount.StringFixed(2), walletID)
-		if err := repository.UserRepository.CreateUserActivity(tx, constant.UserActTypeWithdraw, activityDetail, walletID, currTime); err != nil {
+		if err := repository.UserRepository.CreateUserActivity(tx, currentUserID, constant.UserActTypeWithdraw, activityDetail, walletID, currTime); err != nil {
 			return err
 		}
 		return nil

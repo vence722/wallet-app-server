@@ -17,9 +17,10 @@ func newServiceError(errType string, errMessage string, cause error) ServiceErro
 }
 
 const (
-	ErrTypeRecordNotFound      = "record not found"
-	ErrTypeInvalidRequestBody  = "invalid request body"
-	ErrTypeInternalServerError = "internal server error"
+	ErrTypeRecordNotFound       = "record not found"
+	ErrTypeInvalidRequestBody   = "invalid request body"
+	ErrTypeInternalServerError  = "internal server error"
+	ErrTypeAuthenticationFailed = "authentication failed"
 )
 
 const (
@@ -29,4 +30,5 @@ const (
 	ErrMessageNegativeOrZeroAmount = "amount must be positive"
 	ErrMessageInsufficientBalance  = "insufficient balance"
 	ErrMessageWalletIDInvalid      = "invalid wallet ID"
+	ErrMessageInvalidAccessToken   = "please login first"
 )

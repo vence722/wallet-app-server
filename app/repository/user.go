@@ -13,7 +13,7 @@ import (
 type IUserRepository interface {
 	GetUserByID(db *gorm.DB, userID string) (entity.User, error)
 	GetUserByName(db *gorm.DB, userName string) (entity.User, error)
-	CreateUserActivity(db *gorm.DB, userActType string, userActDetail string, userWalletID string, userActTime time.Time) error
+	CreateUserActivity(db *gorm.DB, userID string, userActType string, userActDetail string, userWalletID string, userActTime time.Time) error
 }
 
 // User repository instance
@@ -39,9 +39,10 @@ func (ur *userRepositoryImpl) GetUserByName(db *gorm.DB, userName string) (entit
 }
 
 // Create user activity
-func (ur *userRepositoryImpl) CreateUserActivity(db *gorm.DB, userActType string, userActDetail string, userWalletID string, userActTime time.Time) error {
+func (ur *userRepositoryImpl) CreateUserActivity(db *gorm.DB, userID string, userActType string, userActDetail string, userWalletID string, userActTime time.Time) error {
 	userActivity := entity.UserActivity{
 		UserActID:     uuid.New().String(),
+		UserID:        userID,
 		UserActType:   userActType,
 		UserActDetail: userActDetail,
 		UserActTime:   userActTime,

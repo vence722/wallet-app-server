@@ -2,8 +2,12 @@ package service
 
 import (
 	"net/http"
+	"time"
+	"wallet-app-server/app/config"
+	"wallet-app-server/app/constant"
 	"wallet-app-server/app/db"
 	"wallet-app-server/app/logger"
+	"wallet-app-server/app/redis"
 	"wallet-app-server/app/repository"
 	"wallet-app-server/app/util"
 
@@ -31,6 +35,7 @@ func (us *userServiceImpl) Login(username string, password string) (string, int,
 			return "", http.StatusBadRequest, newServiceError(ErrTypeInvalidRequestBody, ErrMessageUserNotFound, nil)
 		}
 		// Other repository error
+		logger.Errorf("Failed to get user from DB, err: %s", err.Error())
 		return "", http.StatusInternalServerError, newServiceError(ErrTypeInternalServerError, ErrMessageDBError, err)
 	}
 	// Validate user password
@@ -39,8 +44,14 @@ func (us *userServiceImpl) Login(username string, password string) (string, int,
 	if user.UserHash != inputPassHash {
 		return "", http.StatusBadRequest, newServiceError(ErrTypeInvalidRequestBody, ErrMessagePasswordNotValid, nil)
 	}
-	// Generate session key
-	sessionKey := uuid.New().String()
-	// Insert session key into Redis
-	return sessionKey, http.StatusOK, nil
+	// Generate access token
+	accessToken := uuid.New().String()
+	// Insert access token into Redis
+	if err := redis.Client.Set(accessToken, user.UserID, time.Duration(config.Cfg.Server.SessionExpireTimeInSecs)*time.Second); err != nil {
+		logger.Errorf("Failed to insert access token to Redis, err: %s", err.Error())
+		return "", http.StatusBadRequest, newServiceError(ErrTypeInternalServerError, ErrMessageDBError, nil)
+	}
+	// Create user activity
+	repository.UserRepository.CreateUserActivity(db.DB, user.UserID, constant.UserActTypeLogin, "User login", "", time.Now())
+	return accessToken, http.StatusOK, nil
 }

@@ -33,6 +33,7 @@ CREATE TABLE wallet_app.user_wallet_bridge (
 
 CREATE TABLE wallet_app.user_activity (
     user_act_id VARCHAR(60) NOT NULL,
+    user_id VARCHAR(60) NOT NULL,
     user_act_type VARCHAR(10) NOT NULL,
     user_act_detail VARCHAR(255) NOT NULL,
     user_wallet_id VARCHAR(60),

@@ -11,10 +11,11 @@ import (
 // All the fields should align to config.toml
 type Config struct {
 	Server struct {
-		Host    string `toml:"host"`
-		Port    int    `toml:"port"`
-		SSLCert string `toml:"ssl-cert"`
-		SSLKey  string `toml:"ssl-key"`
+		Host                    string `toml:"host"`
+		Port                    int    `toml:"port"`
+		SSLCert                 string `toml:"ssl-cert"`
+		SSLKey                  string `toml:"ssl-key"`
+		SessionExpireTimeInSecs int    `toml:"session-expire-time-in-secs"`
 	}
 	Logging struct {
 		LogLevel               string `toml:"log-level"`
