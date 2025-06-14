@@ -14,10 +14,11 @@ log-file-retention-in-days = 1
 [DB]
 host = "localhost"
 port = 5432
-schema = "wallet-app"
-username = "vence"
+dbname = "postgres"
+schema = "wallet_app"
+username = "postgres"
 password = "P@ssw0rd"
-sslmode = "require"
+sslmode = "disable"
 
 [Redis]
 addr = "localhost:6379"

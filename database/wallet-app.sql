@@ -1,3 +1,9 @@
+/* Create Database */
+CREATE DATABASE wallet_app;
+
+/* Use Database */
+\c wallet_app;
+
 /* Create Schema */
 CREATE SCHEMA wallet_app;
 

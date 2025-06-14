@@ -26,6 +26,7 @@ type Config struct {
 	DB struct {
 		Host     string `toml:"host"`
 		Port     int    `toml:"port"`
+		DBName   string `toml:"dbname"`
 		Schema   string `toml:"schema"`
 		Username string `toml:"username"`
 		Password string `toml:"password"`

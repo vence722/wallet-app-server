@@ -8,7 +8,7 @@ import (
 func main() {
 	// Parse commandline flags
 	var configPath string
-	flag.StringVar(&configPath, "-c", "config.toml", "Configutation file path")
+	flag.StringVar(&configPath, "c", "config.toml", "Configutation file path")
 	flag.Parse()
 
 	// Init & start application
