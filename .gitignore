@@ -32,4 +32,5 @@ go.work.sum
 # .vscode/
 
 dist/wallet-app-server
+dist/log
 tools/password_hasher

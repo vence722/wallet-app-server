@@ -16,8 +16,8 @@ var DB *gorm.DB
 // Init DB, must be called before using the DB
 func Init() {
 	dbConf := config.Cfg.DB
-	connString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		dbConf.Host, dbConf.Port, dbConf.Username, dbConf.Password, dbConf.Schema, dbConf.SSLMode)
+	connString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s search_path=%s sslmode=%s",
+		dbConf.Host, dbConf.Port, dbConf.Username, dbConf.Password, dbConf.DBName, dbConf.Schema, dbConf.SSLMode)
 	logger.Debug("DB connection string:", connString)
 	db, err := gorm.Open(postgres.Open(connString))
 	if err != nil {

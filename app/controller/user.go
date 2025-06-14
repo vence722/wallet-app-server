@@ -12,7 +12,7 @@ import (
 func Login(c *gin.Context) {
 	// Parse request body
 	req := struct {
-		Username string `json:"user_name"`
+		Username string `json:"username"`
 		Password string `json:"password"`
 	}{}
 	if err := c.BindJSON(&req); err != nil {

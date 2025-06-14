@@ -3,6 +3,7 @@ package service
 import (
 	"net/http"
 	"wallet-app-server/app/db"
+	"wallet-app-server/app/logger"
 	"wallet-app-server/app/repository"
 	"wallet-app-server/app/util"
 
@@ -33,7 +34,9 @@ func (us *userServiceImpl) Login(username string, password string) (string, int,
 		return "", http.StatusInternalServerError, newServiceError(ErrTypeInternalServerError, ErrMessageDBError, err)
 	}
 	// Validate user password
-	if user.UserHash != util.HashPassword(password) {
+	inputPassHash := util.HashPassword(password)
+	logger.Debugf("inputPassHash: %s, user.UserHash: %s", inputPassHash, user.UserHash)
+	if user.UserHash != inputPassHash {
 		return "", http.StatusBadRequest, newServiceError(ErrTypeInvalidRequestBody, ErrMessagePasswordNotValid, nil)
 	}
 	// Generate session key

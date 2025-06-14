@@ -39,9 +39,6 @@ func (wr *walletRepositoryImpl) ListUserWallets(db *gorm.DB, userID string) ([]e
 	var wallets []entity.Wallet
 	if err := db.Table("wallet").Joins("INNER JOIN user_wallet_bridge ON wallet.wallet_id = user_wallet_bridge.wallet_id").
 		Where("user_wallet_bridge.user_id = ?", userID).Select("wallet.*").Find(&wallets).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return []entity.Wallet{}, nil
-		}
 		return []entity.Wallet{}, err
 	}
 	return wallets, nil
@@ -50,7 +47,7 @@ func (wr *walletRepositoryImpl) ListUserWallets(db *gorm.DB, userID string) ([]e
 // Get wallet by ID
 func (wr *walletRepositoryImpl) GetWalletByID(db *gorm.DB, walletID string) (entity.Wallet, error) {
 	var wallet entity.Wallet
-	if err := db.Table("wallet").Where("wallet_id = ?", walletID).Find(&wallet).Error; err != nil {
+	if err := db.Table("wallet").Where("wallet_id = ?", walletID).First(&wallet).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return entity.Wallet{}, nil
 		}
@@ -70,7 +67,7 @@ func (wr *walletRepositoryImpl) Deposit(tx *gorm.DB, walletID string, amount dec
 	// Fetch wallet balance
 	// [NOTE] use clause Strengh = "UPDATE" to implement SELECT ... FOR UPDATE in PostgreSQL
 	var walletBalance decimal.Decimal
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", walletID).Select("balance").Find(&walletBalance).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", walletID).Select("balance").First(&walletBalance).Error; err != nil {
 		return decimal.Zero, err
 	}
 	// Modify to wallet balance (+ amount)
@@ -92,7 +89,7 @@ func (wr *walletRepositoryImpl) Withdraw(tx *gorm.DB, walletID string, amount de
 	// Fetch wallet balance
 	// [NOTE] use clause Strengh = "UPDATE" to implement SELECT ... FOR UPDATE in PostgreSQL
 	var walletBalance decimal.Decimal
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", walletID).Select("balance").Find(&walletBalance).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", walletID).Select("balance").First(&walletBalance).Error; err != nil {
 		return decimal.Zero, err
 	}
 	// Check balance sufficiency
@@ -118,7 +115,7 @@ func (wr *walletRepositoryImpl) Transfer(tx *gorm.DB, userID string, fromWalletI
 	// Fetch from wallet balance
 	// [NOTE] use clause Strengh = "UPDATE" to implement SELECT ... FOR UPDATE in PostgreSQL
 	var fromWalletBalance decimal.Decimal
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", fromWalletID).Select("balance").Find(&fromWalletBalance).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", fromWalletID).Select("balance").First(&fromWalletBalance).Error; err != nil {
 		return err
 	}
 	// Check balance sufficiency
@@ -128,7 +125,7 @@ func (wr *walletRepositoryImpl) Transfer(tx *gorm.DB, userID string, fromWalletI
 	// Fetch to wallet balance
 	// [NOTE] use clause Strengh = "UPDATE" to implement SELECT ... FOR UPDATE in PostgreSQL
 	var toWalletBalance decimal.Decimal
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", toWalletID).Select("balance").Find(&toWalletBalance).Error; err != nil {
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Table("wallet").Where("wallet_id = ?", toWalletID).Select("balance").First(&toWalletBalance).Error; err != nil {
 		return err
 	}
 	// Modify from wallet balance (- amount)

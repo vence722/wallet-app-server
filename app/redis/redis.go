@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"os"
 	"wallet-app-server/app/config"
 	"wallet-app-server/app/logger"
 
@@ -20,6 +21,10 @@ func Init() {
 			Password: redisConf.Password,
 			DB:       redisConf.DB,
 		}),
+	}
+	if _, err := Client.rdb.Ping(context.Background()).Result(); err != nil {
+		logger.Error("Redis init error: ", err.Error())
+		os.Exit(-1)
 	}
 	logger.Info("Redis init sucess")
 }

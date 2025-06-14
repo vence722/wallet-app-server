@@ -22,5 +22,5 @@ sslmode = "disable"
 
 [Redis]
 addr = "localhost:6379"
-password = "P@ssw0rd"
+password = ""
 db = 0

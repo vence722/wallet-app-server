@@ -26,7 +26,7 @@ type userRepositoryImpl struct{}
 // If not found, return gorm.ErrRecordNotFound
 func (ur *userRepositoryImpl) GetUserByID(db *gorm.DB, userID string) (entity.User, error) {
 	var user entity.User
-	err := db.Where("user_id = ?", userID).Find(&user).Error
+	err := db.Where("user_id = ?", userID).First(&user).Error
 	return user, err
 }
 
@@ -34,7 +34,7 @@ func (ur *userRepositoryImpl) GetUserByID(db *gorm.DB, userID string) (entity.Us
 // If not found, return gorm.ErrRecordNotFound
 func (ur *userRepositoryImpl) GetUserByName(db *gorm.DB, userName string) (entity.User, error) {
 	var user entity.User
-	err := db.Where("user_name = ?", userName).Find(&user).Error
+	err := db.Where("user_name = ?", userName).First(&user).Error
 	return user, err
 }
 

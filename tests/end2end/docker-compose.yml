@@ -1,0 +1,16 @@
+
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    volumes:
+      - ../..:/wallet-app-server
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: P@ssw0rd
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
