@@ -80,7 +80,7 @@ func (ws *walletServiceImpl) Deposit(currentUserID string, walletID string, amou
 		return decimal.Zero, http.StatusBadRequest, newServiceError(ErrTypeInvalidRequestBody, ErrMessageWalletIDInvalid, nil)
 	}
 	var result decimal.Decimal
-	if db.DB.Transaction(func(tx *gorm.DB) error {
+	if err := db.DB.Transaction(func(tx *gorm.DB) error {
 		// Record current time
 		currTime := time.Now()
 		// Deposit
@@ -121,7 +121,7 @@ func (ws *walletServiceImpl) Withdraw(currentUserID string, walletID string, amo
 		return decimal.Zero, http.StatusBadRequest, newServiceError(ErrTypeInvalidRequestBody, ErrMessageWalletIDInvalid, nil)
 	}
 	var result decimal.Decimal
-	if db.DB.Transaction(func(tx *gorm.DB) error {
+	if err := db.DB.Transaction(func(tx *gorm.DB) error {
 		// Record current time
 		currTime := time.Now()
 		// Withdraw
