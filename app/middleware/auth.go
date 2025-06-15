@@ -18,7 +18,7 @@ func Authentication(c *gin.Context) {
 	// Extract authorization header
 	authHeader := c.Request.Header.Get("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"success": false,
 			"error":   "Authorization header is not valid",
 		})
@@ -33,7 +33,7 @@ func Authentication(c *gin.Context) {
 		if err == goredis.Nil {
 			logger.Warn("Failed to fetch currentUserID, accessToken: %s, err: %s", accessToken, err.Error())
 			serviceErr := service.ServiceError{ErrType: service.ErrTypeAuthenticationFailed, ErrMessage: service.ErrMessageInvalidAccessToken}
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"success": false,
 				"error":   serviceErr.Error(),
 			})
