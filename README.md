@@ -166,3 +166,6 @@ FACT: This project doesn't include many unit test cases (only for some important
 - User profile maintenance
 - User wallets information maintenance
 - Endpoint to list user activities (login, deposit, withdraw, transfer, etc.)
+
+## Time spent on the test
+<=72 hours

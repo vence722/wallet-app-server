@@ -34,8 +34,8 @@ Test case 1 (Happy Path):
 3. Deposit 10000.00 to wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (balance 10000.00)
 4. Withdraw 3000.00 from wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (balance 7000.00)
 5. Transfer 2000.00 from wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d to wallet 68e95347-29ad-4324-9725-eed1feaa8594 (balance 5000.00)
-6. Check current balance for wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (expected 5000.00)
-5. List transaction history for wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (expected 3 records returned)
+6. Check current balance for wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (expect 5000.00)
+5. List transaction history for wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (expect 3 records returned)
 */
 func TestHappyPath(t *testing.T) {
 	// Test login
@@ -78,7 +78,7 @@ func TestHappyPath(t *testing.T) {
 Test case 2 (Withdraw with Insufficient Amount):
 1. Login as vence.lin user
 2. Deposit 10000.00 to wallet 34fad474-1df7-40a1-8675-0af586d02435 (balance 10000.00)
-3. Withdraw 12000.00 from wallet 34fad474-1df7-40a1-8675-0af586d02435 (expected insufficient amount error)
+3. Withdraw 12000.00 from wallet 34fad474-1df7-40a1-8675-0af586d02435 (expect insufficient amount error)
 */
 func TestWithdrawWithInsufficientAmount(t *testing.T) {
 	// Test login
@@ -96,6 +96,87 @@ func TestWithdrawWithInsufficientAmount(t *testing.T) {
 
 	// Test withdraw
 	_, err = testWithdraw(t, accessToken, walletID, decimal.NewFromFloat(12000.00))
+	assert.Error(t, err, "Should have error")
+	t.Logf("withdraw err: %s", err.Error())
+}
+
+/*
+Test case 3 (Transfer with Insufficient Amount, check both wallet balance are not changed)
+ 1. Login as vence.lin user
+ 2. Transfer 7000.00 from wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (current balance 5000.00) to wallet 68e95347-29ad-4324-9725-eed1feaa8594 (current wallet 2000.00)
+    (expect insufficient amount error)
+ 3. Check balance of wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (expect 5000.00)
+ 4. Login as nick.lee user
+ 5. Check balance of wallet 68e95347-29ad-4324-9725-eed1feaa8594 (expect 2000.00)
+*/
+func TestTransferWithInsufficientAmount(t *testing.T) {
+	// Test login
+	accessToken, err := testLogin(t, "vence.lin", "P@ssw0rd")
+	assert.NoError(t, err, "Failed to login")
+	assert.NotEmpty(t, accessToken, "Access token should not be empty")
+	t.Logf("accessToken(vence.lin): %s", accessToken)
+
+	walletID := "a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d"
+	toWalletID := "68e95347-29ad-4324-9725-eed1feaa8594"
+
+	// Test transfer
+	_, err = testTransfer(t, accessToken, walletID, toWalletID, decimal.NewFromFloat(7000.00))
+	assert.Error(t, err, "Should have error")
+	t.Logf("transfer err: %s", err.Error())
+
+	// Test check balance
+	latestBalance, err := testCheckBalance(t, accessToken, walletID)
+	assert.NoError(t, err, "Failed to check balance")
+	assert.Equal(t, latestBalance, decimal.NewFromFloat(5000.00))
+
+	// Test login
+	accessToken, err = testLogin(t, "nick.lee", "P@ssw0rd")
+	assert.NoError(t, err, "Failed to login")
+	assert.NotEmpty(t, accessToken, "Access token should not be empty")
+	t.Logf("accessToken(nick.lee): %s", accessToken)
+
+	// Test check balance
+	latestBalance, err = testCheckBalance(t, accessToken, toWalletID)
+	assert.NoError(t, err, "Failed to check balance")
+	assert.Equal(t, latestBalance, decimal.NewFromFloat(2000.00))
+}
+
+/*
+Test case 4 (Deposit to a wallet not related current user)
+ 1. Login as vence.lin user
+ 2. Deposit 1000.00 to wallet 68e95347-29ad-4324-9725-eed1feaa8594 (expect invalid wallet ID error)
+*/
+func TestDepositToWalletNotSelf(t *testing.T) {
+	// Test login
+	accessToken, err := testLogin(t, "vence.lin", "P@ssw0rd")
+	assert.NoError(t, err, "Failed to login")
+	assert.NotEmpty(t, accessToken, "Access token should not be empty")
+	t.Logf("accessToken: %s", accessToken)
+
+	walletID := "68e95347-29ad-4324-9725-eed1feaa8594"
+
+	// Test withdraw
+	_, err = testDeposit(t, accessToken, walletID, decimal.NewFromFloat(1000.00))
+	assert.Error(t, err, "Should have error")
+	t.Logf("withdraw err: %s", err.Error())
+}
+
+/*
+Test case 5 (Withdraw from a wallet not related current user)
+ 1. Login as vence.lin user
+ 2. Withdraw 1000.00 from wallet 68e95347-29ad-4324-9725-eed1feaa8594 (expect invalid wallet ID error)
+*/
+func TestWithdrawFromWalletNotSelf(t *testing.T) {
+	// Test login
+	accessToken, err := testLogin(t, "vence.lin", "P@ssw0rd")
+	assert.NoError(t, err, "Failed to login")
+	assert.NotEmpty(t, accessToken, "Access token should not be empty")
+	t.Logf("accessToken: %s", accessToken)
+
+	walletID := "68e95347-29ad-4324-9725-eed1feaa8594"
+
+	// Test withdraw
+	_, err = testWithdraw(t, accessToken, walletID, decimal.NewFromFloat(1000.00))
 	assert.Error(t, err, "Should have error")
 	t.Logf("withdraw err: %s", err.Error())
 }
