@@ -49,7 +49,7 @@ According to this design, I'll split the system API controllers, services and re
 |POST|/api/v1/transaction/transfer|Transfer money from user's wallet to another|
 |POST|/api/v1/transaction/history|List transaction history by wallet ID|
 
-The detail API specification can be check in [the OpenAPI spec](api/wallet_app_api_specification.yml)
+The detail API specification can be found in [the OpenAPI spec](api/wallet_app_api_specification.yml)
 
 ### Project Structure
 For reviewer to begin to review the code, here's a brief introduction about the folder structure of this project:
@@ -91,8 +91,17 @@ build_xxx_xxx.sh ---------> build scripts to provide the executable file
 - `build_mac_arm64.sh` for running on 64-bit Appple CPU MacOS machine (typical for your laptop)
 - If none of these are available for your case, simply check and modify the content inside any of the scripts. They're actually doing very simple things - running go build with specified GOOS and GOARCH environment variables and specify the build target to the `dist/` directory
 
+(3) Verify if the `wallet-app-server` executable file is generated in the `dist/` directory
+
 ## Configuration
 Under the `dist/` directory, you could find `config.toml` file. This is where all the configuration for this server are stored.
+
+- `Server` section contains some basic configuration of the app (e.g. hostname, port, session expire time)
+- `Logging` section is responsible for the configuration of the log files
+- `DB` section is where you config the database connection
+- `Redis` section is where you config the Redis connection
+
+If you want to use our Docker based local testing environment directly, then no need to change the configurations.
 
 ## Setup Testing Envirionment
 If you have `Docker` installed on your current machine, you could run the following script from your `project root` to spawn a docker-compose with Postgres and Redis:
@@ -118,9 +127,17 @@ cd dist
 ./start.sh
 ```
 
+And you can stop the server running in background mode:
+```
+./stop.sh
+```
+
 ## Testing
 
 ### Unit Testing
+```
+go test ./app/...
+```
 
 ### End-to-end Testing
 
