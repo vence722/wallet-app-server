@@ -82,6 +82,8 @@ tools/ -------------------> provide useful executables
 build_xxx_xxx.sh ---------> build scripts to provide the executable file
 ```
 
+Basically, the main business logic flow is `controller --> service --> repository`, a traditional [3-tier architecture](https://www.ibm.com/think/topics/three-tier-architecture).
+
 ## Installation
 
 (1) Clone this repository
