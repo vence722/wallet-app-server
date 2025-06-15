@@ -1,1 +1,435 @@
-test
+openapi: 3.0.4
+info:
+  title: Wallet App API
+  description: A simple and clean wallet app backend server implemented in Go
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+servers:
+  - url: https://${wallet-app-host}/api/v1
+paths:
+  /user/login:
+    post:
+      summary: User login
+      description: Authenticates a user with username and password, returning an access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: User's username
+                  example: mike.lee
+                password:
+                  type: string
+                  description: User's password
+                  example: P@ssw0rd
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation is successful
+                  access_token:
+                    type: string
+                    description: UUID access token
+                    example: bf79ec70-193e-4f63-9dec-3a9ec2be13b0
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid credentials)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /wallet/list:
+    get:
+      summary: List user's wallets
+      description: Retrieves a list of wallets belonging to the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successful retrieval of wallet list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation is successful
+                  wallets:
+                    type: array
+                    description: List of user's wallets
+                    items:
+                      type: object
+                      properties:
+                        wallet_id:
+                          type: string
+                          description: Unique wallet identifier
+                          example: f79715f1-76c6-4728-8146-fc33a8bc87e1
+                        wallet_name:
+                          type: string
+                          description: Name of the wallet
+                          example: My wallet 1
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid or missing authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /wallet/checkBalance:
+    post:
+      summary: Check wallet balance
+      description: Retrieves the current balance of a specified wallet for the authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wallet_id
+              properties:
+                wallet_id:
+                  type: string
+                  description: ID of the wallet to check balance for
+                  example: 5e307fe2-c243-4bea-b047-3ae0133f2432
+      responses:
+        '200':
+          description: Successful balance retrieval
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation is successful
+                  balance:
+                    type: string
+                    description: Current wallet balance (decimal string)
+                    example: "1000.50"
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid or missing authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /wallet/deposit:
+    post:
+      summary: Deposit to wallet
+      description: Deposits a specified amount to a wallet and returns the latest balance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wallet_id
+                - amount
+              properties:
+                wallet_id:
+                  type: string
+                  description: ID of the wallet to deposit to
+                  example: 72ce3378-a748-48b0-a485-6fa1687fa7f1
+                amount:
+                  type: number
+                  description: Amount to deposit (decimal number)
+                  example: 500.25
+      responses:
+        '200':
+          description: Successful deposit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation is successful
+                  balance:
+                    type: number
+                    description: Latest wallet balance after deposit (decimal number)
+                    example: 1500.25
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid or missing authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /wallet/withdraw:
+    post:
+      summary: Withdraw from wallet
+      description: Withdraws a specified amount from a wallet and returns the latest balance
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wallet_id
+                - amount
+              properties:
+                wallet_id:
+                  type: string
+                  description: ID of the wallet to withdraw from
+                  example: b67a7432-1969-488f-a264-9b27cb707fe7
+                amount:
+                  type: number
+                  description: Amount to withdraw (decimal number)
+                  example: 200.75
+      responses:
+        '200':
+          description: Successful withdrawal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation is successful
+                  balance:
+                    type: number
+                    description: Latest wallet balance after withdrawal (decimal number)
+                    example: 1300.00
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid or missing authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /transaction/transfer:
+    post:
+      summary: Transfer money between wallets
+      description: Transfers a specified amount from one wallet to another for the authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from_wallet_id
+                - to_wallet_id
+                - amount
+              properties:
+                from_wallet_id:
+                  type: string
+                  description: ID of the source wallet
+                  example: wallet_123
+                to_wallet_id:
+                  type: string
+                  description: ID of the destination wallet
+                  example: wallet_456
+                amount:
+                  type: number
+                  description: Amount to transfer (decimal number)
+                  example: 100.50
+      responses:
+        '200':
+          description: Successful transfer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the operation is successful
+                  txn_id:
+                    type: string
+                    description: Transaction ID
+                    example: 84906cc0-2004-47b8-8e0d-61834c229241
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid or missing authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /transaction/history:
+    post:
+      summary: List wallet transaction history
+      description: Retrieves the transaction history for a specified wallet of the authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - wallet_id
+              properties:
+                wallet_id:
+                  type: string
+                  description: ID of the wallet to retrieve transaction history for
+                  example: 0f30f7fd-c436-47a6-859f-99b8baa85a02
+      responses:
+        '200':
+          description: Successful retrieval of transaction history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  txn_history:
+                    type: array
+                    description: List of transactions for the specified wallet
+                    items:
+                      type: object
+                      properties:
+                        txn_id:
+                          type: string
+                          description: Transaction ID
+                          example: 0f30f7fd-c436-47a6-859f-99b8baa85a02
+                        from_wallet_id:
+                          type: string
+                          description: Source wallet ID
+                          example: fb45cd20-c44b-4162-a55d-2ee29262b3cc
+                        to_wallet_id:
+                          type: string
+                          description: Destination wallet ID
+                          example: e03c7f48-6171-47aa-8807-1c150f92209d
+                        txn_amount:
+                          type: number
+                          description: Transaction amount
+                          example: 100.50
+                        txn_type_desc:
+                          type: string
+                          description: Type of transaction (transfer, deposit, withdraw)
+                          example: transfer
+                        txn_time:
+                          type: string
+                          format: date-time
+                          description: Transaction timestamp
+                          example: "2025-06-15T16:44:00Z"
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized (invalid or missing authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    ErrorResponse:
+        type: object
+        properties:
+          success:
+            type: boolean
+            description: Whether the operation is successful
+          error:
+            type: string
+            description: Error message
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: access token
