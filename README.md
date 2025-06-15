@@ -21,6 +21,19 @@ The system are mainly consists of three small modules: user, wallet and transact
 
 According to this design, I'll split the system API controllers, services and repositories into separate .go files.
 
+### Key Decision Made for the Design
+- How to handle concurrent requests for wallet balance change (deposit, withdraw, transfer)?
+
+    Use Postgres DB transaction. Use SELECT...FOR UPDATE to lock the wallet balance at the begining of the transaction so that another concurrent DB session won't get dirty value. Commit the transaction only when all the update queries are run successfully, otherwise roll back the transaction to recover the state to the beginning of the request, and return error to the client.
+
+- What is the mechanism to authenticate the user to call the APIs?
+
+    Use an access token granted by the /user/login endpoint. After the user successfully logins, an access token will be generated and stored in Redis. The later requests sent to the API server are expected to have a bearer token (in HTTP `Authorization` header) sent together. At the backend, the authentication middleware will verify the access token by parsing the `Authorization` header to obtain the access token and then verify it from Redis. Error will be return if the provided access token cannot be verified.
+
+- How to keep track of all the users and wallets in the system? 
+
+    Two tables are related to the tracking/auditing requirements: `txn_history` and `user_activity`, but they have slightly different purpose. The `txn_history` is mainly used for tracking money related events and targeting a wallet. The `user_activiy`, on the other hand, is used for tracking user events, including money related and non-related events (e.g. login). This separation provides more flexibility for implementing auditing or compliance requirements.
+
 ### UML
 ![](docs/wallet_app_uml.png)
 
@@ -33,7 +46,7 @@ According to this design, I'll split the system API controllers, services and re
 |POST|/api/v1/wallet/deposit|Deposit to a spcified wallet|
 |POST|/api/v1/wallet/withdraw|Withdraw from a specified wallet|
 |POST|/api/v1/wallet/checkBalance|Checks wallet balance|
-|POST|/api/v1/transaction/transfer|Transfer from his wallet to another one|
+|POST|/api/v1/transaction/transfer|Transfer money from user's wallet to another|
 |POST|/api/v1/transaction/history|List transaction history by wallet ID|
 
 The detail API specification can be check in [the OpenAPI spec](api/wallet_app_api_specification.yml)
