@@ -157,7 +157,7 @@ go test ./app/...
 FACT: This project doesn't include many unit test cases (only for some important stateless functions), since I'm still finding a effective way to create unit test cases for the business logic part, which has a lot of dependencies that need to create mock up objects.
 
 ## Area of improvements
-- More unit testing to cover all important functions
+- More unit testing & end-to-end testing cases to cover all important functions
 - Run load testing and do performance optimization
 - List endpoint for transaction history should have pagination
 - Support K8S deployment
