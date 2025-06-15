@@ -134,12 +134,25 @@ And you can stop the server running in background mode:
 
 ## Testing
 
+### End-to-end Testing (recommended)
+Simply run the following commands:
+```
+cd tests/end2end
+./init_all.sh
+./start_test.sh
+```
+
+The test scripts are inside `tests/end2end` directory
+
+`init_all.sh` will start a clean docker compose of Postgres and Redis. If existing one is running, the script will tear it down first. Then it'll also insert testing data into DB tables (the data can be found in `test_data.sql`)
+
+`start_test.sh` will trigger the end-to-end test cases to start. It'll log some useful information about the API request/response to help you understand what's happening behind.
+
 ### Unit Testing
 ```
 go test ./app/...
 ```
-
-### End-to-end Testing
+FACT: This project doesn't include many unit test cases (only for some important stateless functions), since I'm still finding a effective way to create unit test cases for the business logic part, which has a lot of dependencies that need to create mock up objects.
 
 ## Area of improvements
 - More unit testing to cover all important functions
