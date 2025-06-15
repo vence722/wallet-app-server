@@ -22,6 +22,7 @@ The system are mainly consists of three small modules: user, wallet and transact
 According to this design, I'll split the system API controllers, services and repositories into separate .go files.
 
 ### UML
+![](docs/wallet_app_uml.png)
 
 ### API endpoints
 
