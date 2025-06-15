@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"testing"
@@ -38,37 +39,37 @@ Test case 1 (Happy Path):
 */
 func TestHappyPath(t *testing.T) {
 	// Test login
-	accessToken, err := testLogin("vence.lin", "P@ssw0rd")
+	accessToken, err := testLogin(t, "vence.lin", "P@ssw0rd")
 	assert.NoError(t, err, "Failed to login")
 	assert.NotEmpty(t, accessToken, "Access token should not be empty")
 	t.Logf("accessToken: %s", accessToken)
 
 	// Test list wallets
-	wallets, err := testListWallets(accessToken)
+	wallets, err := testListWallets(t, accessToken)
 	assert.NoError(t, err, "Failed to list wallets")
 	assert.Equal(t, len(wallets), 2)
 
 	walletID := "a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d"
 
 	// Test deposit
-	newBalance, err := testDeposit(accessToken, walletID, decimal.NewFromFloat(10000.00))
+	newBalance, err := testDeposit(t, accessToken, walletID, decimal.NewFromFloat(10000.00))
 	assert.NoError(t, err, "Failed to deposit")
 	assert.Equal(t, newBalance, decimal.NewFromFloat(10000.00))
 
 	// Test withdraw
-	newBalance, err = testWithdraw(accessToken, walletID, decimal.NewFromFloat(3000.00))
+	newBalance, err = testWithdraw(t, accessToken, walletID, decimal.NewFromFloat(3000.00))
 	assert.NoError(t, err, "Failed to withdraw")
 	assert.Equal(t, newBalance, decimal.NewFromFloat(7000.00))
 
 	// Test transfer
 	toWalletID := "68e95347-29ad-4324-9725-eed1feaa8594"
-	txnID, err := testTransfer(accessToken, walletID, toWalletID, decimal.NewFromFloat(2000.00))
+	txnID, err := testTransfer(t, accessToken, walletID, toWalletID, decimal.NewFromFloat(2000.00))
 	assert.NoError(t, err, "Failed to transfer")
 	assert.NotEmpty(t, txnID, "Transaction ID should not be empty")
 	t.Logf("txnID: %s", txnID)
 
 	// Test check balance
-	latestBalance, err := testCheckBalance(accessToken, walletID)
+	latestBalance, err := testCheckBalance(t, accessToken, walletID)
 	assert.NoError(t, err, "Failed to check balance")
 	assert.Equal(t, latestBalance, decimal.NewFromFloat(5000.00))
 }
@@ -76,17 +77,37 @@ func TestHappyPath(t *testing.T) {
 /*
 Test case 2 (Withdraw with Insufficient Amount):
 1. Login as vence.lin user
-2. Deposit 10000.00 to wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (balance 10000.00)
-3. Withdraw 12000.00 from wallet a5344dde-a6a2-4c7a-8b9d-78841ef0ab3d (expected insufficient amount error)
+2. Deposit 10000.00 to wallet 34fad474-1df7-40a1-8675-0af586d02435 (balance 10000.00)
+3. Withdraw 12000.00 from wallet 34fad474-1df7-40a1-8675-0af586d02435 (expected insufficient amount error)
 */
+func TestWithdrawWithInsufficientAmount(t *testing.T) {
+	// Test login
+	accessToken, err := testLogin(t, "vence.lin", "P@ssw0rd")
+	assert.NoError(t, err, "Failed to login")
+	assert.NotEmpty(t, accessToken, "Access token should not be empty")
+	t.Logf("accessToken: %s", accessToken)
 
-func testLogin(username string, password string) (string, error) {
+	walletID := "34fad474-1df7-40a1-8675-0af586d02435"
+
+	// Test deposit
+	newBalance, err := testDeposit(t, accessToken, walletID, decimal.NewFromFloat(10000.00))
+	assert.NoError(t, err, "Failed to deposit")
+	assert.Equal(t, newBalance, decimal.NewFromFloat(10000.00))
+
+	// Test withdraw
+	_, err = testWithdraw(t, accessToken, walletID, decimal.NewFromFloat(12000.00))
+	assert.Error(t, err, "Should have error")
+	t.Logf("withdraw err: %s", err.Error())
+}
+
+func testLogin(t *testing.T, username string, password string) (string, error) {
 	// Construct request body
 	reqBody := map[string]any{
 		"username": username,
 		"password": password,
 	}
 	body, _ := json.Marshal(reqBody)
+	t.Logf("[testLogin] --> %s", string(body))
 	req, err := http.NewRequest("POST", ApiRoot+"/user/login", bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
@@ -100,16 +121,20 @@ func testLogin(username string, password string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	t.Logf("[testLogin] <-- %s", string(respBody))
 	var response map[string]any
 	err = json.Unmarshal(respBody, &response)
 	if err != nil {
 		return "", err
 	}
-	// Return access token
+	if response["success"] == false {
+		return "", errors.New(response["error"].(string))
+	}
 	return response["access_token"].(string), nil
 }
 
-func testListWallets(accessToken string) ([]model.WalletInfo, error) {
+func testListWallets(t *testing.T, accessToken string) ([]model.WalletInfo, error) {
+	t.Logf("[testListWallets] --> none")
 	req, err := http.NewRequest("GET", ApiRoot+"/wallet/list", nil)
 	if err != nil {
 		return nil, err
@@ -124,23 +149,29 @@ func testListWallets(accessToken string) ([]model.WalletInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	t.Logf("[testListWallets] <-- %s", string(respBody))
 	var response = struct {
 		Success bool               `json:"success"`
 		Wallets []model.WalletInfo `json:"wallets"`
+		Error   string             `json:"error"`
 	}{}
 	err = json.Unmarshal(respBody, &response)
 	if err != nil {
 		return nil, err
 	}
+	if response.Success == false {
+		return nil, errors.New(response.Error)
+	}
 	return response.Wallets, nil
 }
 
-func testDeposit(accessToken string, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
+func testDeposit(t *testing.T, accessToken string, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
 	reqBody := map[string]any{
 		"wallet_id": walletID,
 		"amount":    amount,
 	}
 	body, _ := json.Marshal(reqBody)
+	t.Logf("[testDeposit] --> %s", string(body))
 	req, err := http.NewRequest("POST", ApiRoot+"/wallet/deposit", bytes.NewBuffer(body))
 	if err != nil {
 		return decimal.Zero, err
@@ -155,20 +186,25 @@ func testDeposit(accessToken string, walletID string, amount decimal.Decimal) (d
 	if err != nil {
 		return decimal.Zero, err
 	}
+	t.Logf("[testDeposit] <-- %s", string(respBody))
 	var response map[string]any
 	err = json.Unmarshal(respBody, &response)
 	if err != nil {
 		return decimal.Zero, err
 	}
+	if response["success"] == false {
+		return decimal.Zero, errors.New(response["error"].(string))
+	}
 	return decimal.NewFromFloat(response["balance"].(float64)), nil
 }
 
-func testWithdraw(accessToken string, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
+func testWithdraw(t *testing.T, accessToken string, walletID string, amount decimal.Decimal) (decimal.Decimal, error) {
 	reqBody := map[string]any{
 		"wallet_id": walletID,
 		"amount":    amount,
 	}
 	body, _ := json.Marshal(reqBody)
+	t.Logf("[testWithdraw] --> %s", string(body))
 	req, err := http.NewRequest("POST", ApiRoot+"/wallet/withdraw", bytes.NewBuffer(body))
 	if err != nil {
 		return decimal.Zero, err
@@ -183,21 +219,26 @@ func testWithdraw(accessToken string, walletID string, amount decimal.Decimal) (
 	if err != nil {
 		return decimal.Zero, err
 	}
+	t.Logf("[testWithdraw] <-- %s", string(respBody))
 	var response map[string]any
 	err = json.Unmarshal(respBody, &response)
 	if err != nil {
 		return decimal.Zero, err
 	}
+	if response["success"] == false {
+		return decimal.Zero, errors.New(response["error"].(string))
+	}
 	return decimal.NewFromFloat(response["balance"].(float64)), nil
 }
 
-func testTransfer(accessToken string, fromWalletID string, toWalletID string, amount decimal.Decimal) (string, error) {
+func testTransfer(t *testing.T, accessToken string, fromWalletID string, toWalletID string, amount decimal.Decimal) (string, error) {
 	reqBody := map[string]any{
 		"from_wallet_id": fromWalletID,
 		"to_wallet_id":   toWalletID,
 		"amount":         amount,
 	}
 	body, _ := json.Marshal(reqBody)
+	t.Logf("[testTransfer] --> %s", string(body))
 	req, err := http.NewRequest("POST", ApiRoot+"/transaction/transfer", bytes.NewBuffer(body))
 	if err != nil {
 		return "", err
@@ -212,20 +253,25 @@ func testTransfer(accessToken string, fromWalletID string, toWalletID string, am
 	if err != nil {
 		return "", err
 	}
+	t.Logf("[testTransfer] <-- %s", string(respBody))
 	var response map[string]any
 	err = json.Unmarshal(respBody, &response)
 	if err != nil {
 		return "", err
 	}
+	if response["success"] == false {
+		return "", errors.New(response["error"].(string))
+	}
 	return response["txn_id"].(string), nil
 }
 
-func testCheckBalance(accessToken string, walletID string) (decimal.Decimal, error) {
+func testCheckBalance(t *testing.T, accessToken string, walletID string) (decimal.Decimal, error) {
 	// Construct request body
 	reqBody := map[string]any{
 		"wallet_id": walletID,
 	}
 	body, _ := json.Marshal(reqBody)
+	t.Logf("[testCheckBalance] --> %s", string(body))
 	req, err := http.NewRequest("POST", ApiRoot+"/wallet/checkBalance", bytes.NewBuffer(body))
 	if err != nil {
 		return decimal.Zero, err
@@ -240,11 +286,14 @@ func testCheckBalance(accessToken string, walletID string) (decimal.Decimal, err
 	if err != nil {
 		return decimal.Zero, err
 	}
+	t.Logf("[testCheckBalance] <-- %s", string(respBody))
 	var response map[string]any
 	err = json.Unmarshal(respBody, &response)
 	if err != nil {
 		return decimal.Zero, err
 	}
-	// Return access token
+	if response["success"] == false {
+		return decimal.Zero, errors.New(response["error"].(string))
+	}
 	return decimal.NewFromFloat(response["balance"].(float64)), nil
 }
