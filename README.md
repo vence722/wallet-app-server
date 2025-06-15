@@ -38,6 +38,37 @@ According to this design, I'll split the system API controllers, services and re
 
 The detail API specification can be check in [the OpenAPI spec](api/wallet_app_api_specification.yml)
 
+### Project Structure
+For reviewer to begin to review the code, here's a brief introduction about the folder structure of this project:
+```
+api/ ---------------------> the API specification documents (e.g. OpenAPI/Swagger yaml)
+app/ ---------------------> the root of the wallet app source code
+    - config/ ------------> app configuration related go files
+    - constant/ ----------> global constant shared by all the project
+    - controller/ --------> MVC controllers, the entry point of each API endpoints
+    - db/ ----------------> DB module, responsible for the database connection
+    - entity/ ------------> DB entities to map each DB table, defined in GORM framework standarded
+    - logger/ ------------> a logger wrapper to provide an abstract layer for the underlying log library
+    - middleware/ --------> custom GIN middlewares
+    - model/ -------------> model structs to store data, to be passed through service and controller layers
+    - redis/ -------------> Redis module, responsible for the Redis connection
+    - repository/ --------> all DB operations defined here, to be called by service layer
+    - service/ -----------> all business logic defined here, to be called by controller layer
+    - util/ --------------> provides some util functions shared by the project
+    - app.go -------------> the entry point of the server, including the logic for initialization and starting the GIN server
+    - routes.go ----------> config all the API routes for the server
+cmd/ ---------------------> the root of all executable files
+    - main.go ------------> the main entry point of the program
+database/ ----------------> defines some DB schema sql files
+dist/ --------------------> the root of target project directory 
+docs/ --------------------> document related items
+tests/ -------------------> test related files
+    - end2end/ -----------> end-to-end test related files
+tools/ -------------------> provide useful executables
+    - password_hasher/ ---> a small util to generate password hash used by this project
+build_xxx_xxx.sh ---------> build scripts to provide the executable file
+```
+
 ## Installation
 
 (1) Clone this repository
@@ -56,6 +87,8 @@ If you have `Docker` installed on your current machine, you could run the follow
 cd tests/end2end
 ./init_all.sh
 ```
+Make sure you don't have local Postgres or Redis running on the default ports (5432 and 6379) before you spawn the docker-compose.
+
 The script will also insert some test data into the Postgres DB for end-to-end testing.
 
 ## Start API Server
@@ -77,3 +110,14 @@ cd dist
 ### Unit Testing
 
 ### End-to-end Testing
+
+## Area of improvements
+- More unit testing to cover all important functions
+- Run load testing and do performance optimization
+- List endpoint for transaction history should have pagination
+- Support K8S deployment
+
+## Features wishlist
+- User profile maintenance
+- User wallets information maintenance
+- Endpoint to list user activities (login, deposit, withdraw, transfer, etc.)
